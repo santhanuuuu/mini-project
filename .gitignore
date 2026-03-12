@@ -5,12 +5,20 @@ node_modules/
 __pycache__/
 *.pyc
 
-# Environment
+# Environment variables
 .env
+.env.local
 
 # Logs
 *.log
 
+# Build folders
+dist/
+build/
+
 # OS files
 .DS_Store
 Thumbs.db
+
+# Vite cache
+.vite/
