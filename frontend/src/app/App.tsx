@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { HeroSection } from './components/HeroSection';
 import { DetectionSection } from './components/DetectionSection';
@@ -13,64 +13,72 @@ export default function App() {
   const [confidence, setConfidence] = useState<number>(0);
 
   const detectionRef = useRef<HTMLDivElement>(null);
+  const resultRef = useRef<HTMLDivElement>(null);
 
   const handleUploadClick = () => {
     detectionRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  const handleAnalyze = async (file: File) => {
-    setAnalysisStatus('analyzing');
-    setResult(null);
+  // ✅ CONNECTED TO BACKEND
+const handleAnalyze = async (file: File) => {
+  setAnalysisStatus("analyzing");
+  setResult(null);
 
-    try {
-      const formData = new FormData();
-      formData.append("image", file);
+  try {
+    const formData = new FormData();
+    formData.append("image", file);
 
-      const response = await fetch("http://127.0.0.1:8000/predictImage", {
-        method: "POST",
-        body: formData
-      });
+    const response = await fetch("http://localhost:8000/predictImage", {
+      method: "POST",
+      body: formData,
+    });
 
-      const data = await response.json();
+    const data = await response.json();
+    console.log("Backend response:", data);
 
-      if (data.result === "Real") {
-        setResult("real");
-        setConfidence(95);
-      } else if (data.result === "Fake") {
-        setResult("fake");
-        setConfidence(95);
-      } else {
-        setResult(null);
-        setConfidence(0);
-      }
+    const prediction = data.result === 0 ? "real" : "fake";
 
-      setAnalysisStatus('complete');
-
-    } catch (error) {
-      console.error("Error connecting to backend:", error);
-      setAnalysisStatus('idle');
+    setResult(prediction);
+    setConfidence(95);
+    setAnalysisStatus("complete");
+  } catch (error) {
+    console.error(error);
+    setAnalysisStatus("idle");
+  }
+};
+  // Scroll to result when analysis completes
+  useEffect(() => {
+    if (analysisStatus === 'complete') {
+      setTimeout(() => {
+        resultRef.current?.scrollIntoView({
+          behavior: 'smooth',
+          block: 'center'
+        });
+      }, 300);
     }
-  };
+  }, [analysisStatus]);
 
   return (
-    <motion.div 
+    <motion.div
       className="min-h-screen bg-black text-white overflow-x-hidden"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
     >
       <HeroSection onUploadClick={handleUploadClick} />
-      
+
       <div ref={detectionRef}>
         <DetectionSection onAnalyze={handleAnalyze} />
       </div>
-      
-      <ResultSection 
-        status={analysisStatus} 
-        result={result} 
-        confidence={confidence}
-      />
-      
+
+      <div ref={resultRef}>
+        <ResultSection
+          status={analysisStatus}
+          result={result}
+          confidence={confidence}
+        />
+      </div>
+
       <HowItWorksSection />
       <TechnologySection />
       <Footer />
