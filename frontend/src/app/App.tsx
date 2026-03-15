@@ -19,33 +19,35 @@ export default function App() {
     detectionRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  // ✅ CONNECTED TO BACKEND
-const handleAnalyze = async (file: File) => {
-  setAnalysisStatus("analyzing");
-  setResult(null);
+  // CONNECTED TO RENDER BACKEND
+  const handleAnalyze = async (file: File) => {
+    setAnalysisStatus("analyzing");
+    setResult(null);
 
-  try {
-    const formData = new FormData();
-    formData.append("image", file);
+    try {
+      const formData = new FormData();
+      formData.append("image", file);
 
-    const response = await fetch("http://localhost:8000/predictImage", {
-      method: "POST",
-      body: formData,
-    });
+      const response = await fetch("https://mini-project-1-skru.onrender.com/predictImage", {
+        method: "POST",
+        body: formData,
+      });
 
-    const data = await response.json();
-    console.log("Backend response:", data);
+      const data = await response.json();
+      console.log("Backend response:", data);
 
-    const prediction = data.result === 0 ? "real" : "fake";
+      const prediction = data.result === 0 ? "real" : "fake";
 
-    setResult(prediction);
-    setConfidence(95);
-    setAnalysisStatus("complete");
-  } catch (error) {
-    console.error(error);
-    setAnalysisStatus("idle");
-  }
-};
+      setResult(prediction);
+      setConfidence(95);
+      setAnalysisStatus("complete");
+
+    } catch (error) {
+      console.error(error);
+      setAnalysisStatus("idle");
+    }
+  };
+
   // Scroll to result when analysis completes
   useEffect(() => {
     if (analysisStatus === 'complete') {
